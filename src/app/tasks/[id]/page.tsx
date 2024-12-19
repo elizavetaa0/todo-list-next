@@ -1,37 +1,29 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Container, Typography, CircularProgress, Button } from '@mui/material';
-import { Task } from '@/type';
+import { RootState } from '@/store/store';
+import { toggleTaskStatus } from '@/store/taskSlice';
+import { useEffect, useState } from 'react';
 
 export default function TaskDetail() {
   const { id } = useParams();
   const router = useRouter();
-  const [task, setTask] = useState<Task | null>(null);
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    if (!id) {
-      console.error('No ID provided in useParams');
-      setLoading(false);
-      return;
-    }
+  const task = useSelector((state: RootState) =>
+    state.tasks.tasks.find((t) => t.id === Number(id))
+  );
 
-    fetch(`https://jsonplaceholder.typicode.com/todos/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Failed to fetch task with id ${id}`);
-        return res.json();
-      })
-      .then((data) => {
-        setTask(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching task: ', err);
-        setLoading(false);
-      });
-  }, [id]);
+  useEffect(() => {
+    if (task) {
+      setLoading(false);
+    } else {
+      setLoading(false);
+    }
+  }, [task]);
 
   if (loading) {
     return (
@@ -63,7 +55,7 @@ export default function TaskDetail() {
   }
 
   const toggleCompletion = () => {
-    setTask((prev) => (prev ? { ...prev, completed: !prev.completed } : null));
+    dispatch(toggleTaskStatus(task.id));
   };
 
   return (
